@@ -37,7 +37,7 @@ export const getIconLayer=(idx,lngLat,angle=0)=>{
             // iconAtlas and iconMapping are required
             // getIcon: return a string 
             // "https://res.cloudinary.com/bdevg/image/upload/v1606483976/right-arrow_pdxgkq.png"
-            iconAtlas: img1,
+            iconAtlas: "https://res.cloudinary.com/bdevg/image/upload/v1606483976/right-arrow_pdxgkq.png",
             getIcon: (d) => "marker",
             iconMapping: ICON__MAPPING,
             sizeScale: 10,
