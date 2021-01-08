@@ -4,14 +4,7 @@ import "cesium/Build/Cesium/Widgets/widgets.css";
 //window.CESIUM_BASE_URL = '/';
 import flightData from "./data";
 
-const sleep = (ms) =>{
-  return new Promise((res)=>{
-    setTimeout(()=>res(),ms);
-  })
-}
 export default function CesiumComp(){
-    const [position,setPosition]=React.useState(Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height));
-
     React.useEffect(()=>{
       Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0NzNiOTg1NC02NWQ3LTRhNmMtYmE5OC1kZGMyZmE1NmUzN2YiLCJpZCI6NDA0MTUsImlhdCI6MTYxMDAwNTMxNX0.0VnhY-BsO6YTrAB1JESjWVJDlmX5ffUg38XWBW6Jet4";
       const viewer = new Cesium.Viewer('cesiumContainer', {
@@ -27,14 +20,32 @@ export default function CesiumComp(){
           pitch : Cesium.Math.toRadians(-15.0),
         }
       });
- 
-    const positions = [];
+
+    const timeStepInSeconds = 30;
+    const totalSeconds = timeStepInSeconds * (flightData.length - 1);
+    const start = Cesium.JulianDate.fromIso8601("2020-03-09T23:10:00Z");
+    const stop = Cesium.JulianDate.addSeconds(start, totalSeconds, new Cesium.JulianDate());
+    viewer.clock.startTime = start.clone();
+    viewer.clock.stopTime = stop.clone();
+    viewer.clock.currentTime = start.clone();
+    viewer.timeline.zoomTo(start, stop);
+    // Speed up the playback speed 50x.
+    viewer.clock.multiplier = 50;
+    // Start playing the scene.
+    viewer.clock.shouldAnimate = true;
+
+    // The SampledPositionedProperty stores the position and timestamp for each sample along the radar sample series.
+    const positionProperty = new Cesium.SampledPositionProperty();
+
     for (let i = 0; i < flightData.length; i++) {
       const dataPoint = flightData[i];
+
+      // Declare the time for this individual sample and store it in a new JulianDate instance.
+      const time = Cesium.JulianDate.addSeconds(start, i * timeStepInSeconds, new Cesium.JulianDate());
       const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
-      positions.push(dataPoint.longitude);
-      positions.push(dataPoint.latitude);
-      positions.push(dataPoint.height);
+      // Store the position along with its timestamp.
+      // Here we add the positions all upfront, but these can be added at run-time as samples are received from a server.
+      positionProperty.addSample(time, position);
 
       viewer.entities.add({
         description: `Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`,
@@ -43,37 +54,23 @@ export default function CesiumComp(){
       });
     }
 
-    let line = viewer.entities.add({
-      polyline: {
-        positions:Cesium.Cartesian3.fromDegreesArrayHeights(positions),
-        width: 4,
-        material:Cesium.Color.RED
-      }
-    })
-    //loadModel(viewer,start,stop,positionProperty);
-    loadModel(viewer)
+    loadModel(viewer,start,stop,positionProperty);
     },[]);
     
-    async function loadModel(viewer) {
+    async function loadModel(viewer,start,stop,positionProperty) {
       // Load the glTF model from Cesium ion.
       const airplaneUri = await Cesium.IonResource.fromAssetId(246327);
       const airplaneEntity = viewer.entities.add({
-        position: position,
+        availability: new Cesium.TimeIntervalCollection([ new Cesium.TimeInterval({ start: start, stop: stop }) ]),
+        position: positionProperty,
         // Attach the 3D model instead of the green point.
-        model: { uri: airplaneUri },
-        path: new Cesium.PathGraphics({ width: 3 })
+        model: { uri: airplaneUri,scale:1,minimumPixelSize:200 },
+        // Automatically compute the orientation from the position.
+        orientation: new Cesium.VelocityOrientationProperty(positionProperty),    
+        path: new Cesium.PathGraphics({ width: 3,material:Cesium.Color.RED })
       });
       
       viewer.trackedEntity = airplaneEntity;
-      for (let i = 0; i < flightData.length; i++){
-        await sleep(1000);
-        const dataPoint = flightData[i];
-        const tempPos = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
-        airplaneEntity.position = tempPos
-      }
     }
-    React.useEffect(() => {
-      //console.log(position)
-    }, [position])
     return  <div id="cesiumContainer"></div>;
 }
