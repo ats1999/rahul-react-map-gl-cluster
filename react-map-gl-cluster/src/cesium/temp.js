@@ -45,13 +45,9 @@ const ResiumComp=()=>{
     }
 
     useEffect(()=>{
-        Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0NzNiOTg1NC02NWQ3LTRhNmMtYmE5OC1kZGMyZmE1NmUzN2YiLCJpZCI6NDA0MTUsImlhdCI6MTYxMDAwNTMxNX0.0VnhY-BsO6YTrAB1JESjWVJDlmX5ffUg38XWBW6Jet4";
+        Cesium.Ion.defaultAccessToken = process.env.CESIUM_TOKEN;
         movePlane();
     },[]);
-
-    // useEffect(()=>{
-    //     console.log("POS:",posModel,"URI:",airplaneUri)
-    // },[posModel,airplaneUri]);
 
     return <Viewer
     full terrainProvider={terrainProvider}

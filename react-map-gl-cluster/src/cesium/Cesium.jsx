@@ -13,7 +13,7 @@ export default function CesiumComp(){
     const [position,setPosition]=React.useState(Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height));
 
     React.useEffect(()=>{
-      Cesium.Ion.defaultAccessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI0NzNiOTg1NC02NWQ3LTRhNmMtYmE5OC1kZGMyZmE1NmUzN2YiLCJpZCI6NDA0MTUsImlhdCI6MTYxMDAwNTMxNX0.0VnhY-BsO6YTrAB1JESjWVJDlmX5ffUg38XWBW6Jet4";
+      Cesium.Ion.defaultAccessToken = process.env.CESIUM_TOKEN;
       const viewer = new Cesium.Viewer('cesiumContainer', {
           terrainProvider: Cesium.createWorldTerrain()
       }); 
