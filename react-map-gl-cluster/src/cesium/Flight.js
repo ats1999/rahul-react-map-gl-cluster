@@ -6,7 +6,7 @@ import flightData from "./data";
 
 export default function CesiumComp(){
     React.useEffect(()=>{
-      Cesium.Ion.defaultAccessToken = process.env.CESIUM_TOKEN;
+      Cesium.Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_TOKEN;
       const viewer = new Cesium.Viewer('cesiumContainer', {
           terrainProvider: Cesium.createWorldTerrain()
       }); 
@@ -50,7 +50,7 @@ export default function CesiumComp(){
       viewer.entities.add({
         description: `Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`,
         position: position,
-        point: { pixelSize: 10, color: Cesium.Color.RED }
+        point: { pixelSize: 10, color: Cesium.Color.WHITE }
       });
     }
 

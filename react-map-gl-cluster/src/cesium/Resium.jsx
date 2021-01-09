@@ -10,11 +10,12 @@ const sleep = (ms) =>{
     })
 }
 
-const positions = [];
+const initPositionsOfPolyline = [];
 flightData.map(dataPoint=>{
-    positions.push(dataPoint.longitude);
-    positions.push(dataPoint.latitude);
-    positions.push(dataPoint.height);
+    initPositionsOfPolyline.push(dataPoint.longitude);
+    initPositionsOfPolyline.push(dataPoint.latitude);
+    initPositionsOfPolyline.push(dataPoint.height);
+    return dataPoint;
 });
 
 const ResiumComp=()=>{
@@ -28,23 +29,26 @@ const ResiumComp=()=>{
     };
 
     const airPlaneURI = async() => {
-        const uri = await Cesium.IonResource.fromAssetId(246327)
+        // 247493, 246327->247501
+        const uri = await Cesium.IonResource.fromAssetId(247501)
         setAirplaneUri(uri);
     };
 
-    const movePlane = async() =>{
-        airPlaneURI();
-        for(let i=0; i<flightData.length; i++){
-            const dataPoint = flightData[i];
-            const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
-            setPosModel(position);
-            await sleep(100);
-        }
-    }
+
 
     useEffect(()=>{
         Cesium.Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_TOKEN;
-        movePlane();
+        
+        const movePlane = (i) =>{
+            const dataPoint = flightData[i];
+            const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
+            setPosModel(position);
+            if(flightData.length>i) 
+                setTimeout(()=>movePlane(i+1),10000);
+            else return;
+        }
+        movePlane(0);
+        airPlaneURI();
     },[]);
 
     return <Viewer
@@ -71,18 +75,19 @@ const ResiumComp=()=>{
                             description = {`Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`}
                             position={position}
                         >
-                            <Resium.PointGraphics pixelSize={10} />
+                            <Resium.PointGraphics key={`pointgraphics-${idx}`} pixelSize={10} />
                         </Resium.Entity>
                     </>
             })
         }
         {/* polyline */}
-        <Resium.Entity>
+        <Resium.Entity key={`entity-polyline`}>
             <Resium.PolylineGraphics
                 show
                 width={3}
                 material={Cesium.Color.RED}
-                positions={Cesium.Cartesian3.fromDegreesArrayHeights(positions)}
+                positions={Cesium.Cartesian3.fromDegreesArrayHeights(initPositionsOfPolyline)}
+                key={`entity-PolylineGraphics`}
             />
         </Resium.Entity>
         {/* Model */}
@@ -90,14 +95,16 @@ const ResiumComp=()=>{
             (airplaneUri&&posModel)&&<Resium.Entity
                 tracked	
                 position={posModel}
+                key={`model`}
             >
                 <Resium.ModelGraphics
                     scale={1}
                     uri={airplaneUri}
                     minimumPixelSize={100}
-                    runAnimations
                     show
+                    pixelSize={100}
                     color={Cesium.Color.WHITE}
+                    key={`model-graphics`}
                 />
             </Resium.Entity>
         }

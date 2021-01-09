@@ -13,7 +13,7 @@ export default function CesiumComp(){
     const [position,setPosition]=React.useState(Cesium.Cartesian3.fromDegrees(flightData[0].longitude, flightData[0].latitude, flightData[0].height));
 
     React.useEffect(()=>{
-      Cesium.Ion.defaultAccessToken = process.env.CESIUM_TOKEN;
+      Cesium.Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_TOKEN;
       const viewer = new Cesium.Viewer('cesiumContainer', {
           terrainProvider: Cesium.createWorldTerrain()
       }); 
@@ -56,7 +56,7 @@ export default function CesiumComp(){
     
     async function loadModel(viewer) {
       // Load the glTF model from Cesium ion.
-      const airplaneUri = await Cesium.IonResource.fromAssetId(246327);
+      const airplaneUri = await Cesium.IonResource.fromAssetId(247501);
       const airplaneEntity = viewer.entities.add({
         position: position,
         // Attach the 3D model instead of the green point.
