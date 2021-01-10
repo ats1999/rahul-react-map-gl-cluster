@@ -1,56 +1,113 @@
-/*
-<Cesium
-    drones={drones}
-    threeD={threeD}
-    droneRoutes={droneRoutes}
-    wayPoints={wayPoints}
-    routeDiversions={routeDiversions}
-    completedPathDrones={completedPathDrones}
-/>
-*/
-
-
 import React,{useState,useEffect} from "react";
-import  {Ion,Viewer,IonResource,Cartesian3,createWorldTerrain} from 'cesium';
-import "cesium/Build/Cesium/Widgets/widgets.css";
-import dataSet from "./data";
-import Polylines from "./Polylines";
-
-export default function CesiumRoot(){
-    const [drones, setDrones] = useState([]);
-    const [droneRoutes, setDroneRoutes] = useState(dataSet);
-    const [wayPoints, setWayPoints] = useState([]);
-    const [routeDiversions, setRouteDiversions] = useState([]);
-    const [completedPathDrones, setCompletedPathDrones] = useState([]);
-    const [droneURI, setDroneURI] = useState("");
-    const [viewer, setViewer] = useState(null);
-
-    async function loadModel(){
-        const cesiumDroneURI = await IonResource.fromAssetId(247501);
-        setDroneURI(cesiumDroneURI);
-    }
-
-    useEffect(() => {
-        Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_TOKEN;
-        let v = new Viewer('cesiumContainer', {
-            terrainProvider: createWorldTerrain()
-        });
-        setViewer(v) 
-        loadModel();
-        v.camera.flyTo({
-            destination : Cartesian3.fromDegrees(76.92025126928692, 31.815485031139886, 0),
-            // orientation : {
-            //   heading : Cesium.Math.toRadians(0.0),
-            //   pitch : Cesium.Math.toRadians(-15.0),
-            // }
-        });
-        return () => {
-            // remove map
-        }
-    }, []);
-
-    return  <>
-                <div id="cesiumContainer"></div>
-                <Polylines viewer={viewer} routes={droneRoutes}/>
-            </>
+import { Viewer } from "resium";
+import * as Resium from "resium";
+import * as Cesium from 'cesium';
+import flightData from "./data";
+const terrainProvider = Cesium.createWorldTerrain();
+const sleep = (ms) =>{
+    return new Promise((res)=>{
+      setTimeout(()=>res(),ms);
+    })
 }
+
+const initPositionsOfPolyline = [];
+flightData.map(dataPoint=>{
+    initPositionsOfPolyline.push(dataPoint.longitude);
+    initPositionsOfPolyline.push(dataPoint.latitude);
+    initPositionsOfPolyline.push(dataPoint.height);
+    return dataPoint;
+});
+
+const ResiumComp=()=>{
+    let viewer;
+    const [posModel, setPosModel] = useState(null);
+    const [airplaneUri, setAirplaneUri] = useState(null);
+    const handleReady = tileset => {
+        if (viewer) {
+          //viewer.zoomTo(tileset);
+        }
+    };
+
+    const airPlaneURI = async() => {
+        // 247493, 246327->247501
+        const uri = await Cesium.IonResource.fromAssetId(247501)
+        setAirplaneUri(uri);
+    };
+
+
+
+    useEffect(()=>{
+        Cesium.Ion.defaultAccessToken = process.env.REACT_APP_CESIUM_TOKEN;
+        
+        const movePlane = (i) =>{
+            const dataPoint = flightData[i];
+            const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
+            setPosModel(position);
+            if(flightData.length>i) 
+                setTimeout(()=>movePlane(i+1),5000);
+            else return;
+        }
+        movePlane(0);
+        airPlaneURI();
+    },[]);
+
+    return <Viewer
+    full terrainProvider={terrainProvider}
+    ref={e=>{
+        viewer = e && e.cesiumElement;
+    }}
+    style={{
+        position: "absolute",
+        top: 0,
+        left: 100,
+        right: 0,
+        bottom: 100,
+      }}
+    >
+        {/* <Resium.Cesium3DTileset url={Cesium.IonResource.fromAssetId(5714)} onReady={handleReady}/> */}
+        {
+            flightData.map((dataPoint,idx)=>{
+                const position = Cesium.Cartesian3.fromDegrees(dataPoint.longitude, dataPoint.latitude, dataPoint.height);
+                return <>
+                        <Resium.Entity 
+                            key={`point-${idx}`}
+                            name="Tokyo" 
+                            description = {`Location: (${dataPoint.longitude}, ${dataPoint.latitude}, ${dataPoint.height})`}
+                            position={position}
+                        >
+                            <Resium.PointGraphics key={`pointgraphics-${idx}`} pixelSize={10} />
+                        </Resium.Entity>
+                    </>
+            })
+        }
+        {/* polyline */}
+        <Resium.Entity key={`entity-polyline`}>
+            <Resium.PolylineGraphics
+                show
+                width={3}
+                material={Cesium.Color.RED}
+                positions={Cesium.Cartesian3.fromDegreesArrayHeights(initPositionsOfPolyline)}
+                key={`entity-PolylineGraphics`}
+            />
+        </Resium.Entity>
+        {/* Model */}
+        {
+            (airplaneUri&&posModel)&&<Resium.Entity
+                tracked	
+                position={posModel}
+                key={`model`}
+            >
+                <Resium.ModelGraphics
+                    scale={1}
+                    uri={airplaneUri}
+                    minimumPixelSize={50}
+                    show
+                    pixelSize={50}
+                    color={Cesium.Color.WHITE}
+                    key={`model-graphics`}
+                />
+            </Resium.Entity>
+        }
+    </Viewer>
+}
+export default ResiumComp;
