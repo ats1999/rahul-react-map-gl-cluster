@@ -16,4 +16,7 @@ Implemention of cluster in react-map-gl. The aim of this repo is to ease the wor
 ![Screenshot (5)](https://user-images.githubusercontent.com/54087826/114540723-81ee9200-9c73-11eb-8b5e-b65f576e6913.png)
 
 ## Develop
-Clone this package and start  as normal React/Node Project
+1. Clone this project
+2. Go to the project folder
+3. run `npm i`
+4. run `npm  start`
