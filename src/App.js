@@ -1,9 +1,7 @@
-import React from "react";
 import React, { useState, useRef } from "react";
 import ReactMapGL from "react-map-gl";
 import ClusterGroupMain from './cluster/ClusterGroupMain';
 import { dataSet } from "./demo/data";
-import Deck from "./deck.gl/Deck.Gl";
 const data = dataSet.map(point=>{
   return {
     longitude:point[0],
@@ -23,7 +21,7 @@ export default function App() {
   const mapRef = useRef(null);
   return (
     <div className="App">
-      <h1>Hello, thanks for your time</h1>
+      <h1>Hi, this is an implemention of Cluster</h1>
       <ReactMapGL
         {...viewport}
         ref={mapRef}
@@ -32,13 +30,12 @@ export default function App() {
         mapboxApiAccessToken="pk.eyJ1IjoicmFmaWxvczU1NiIsImEiOiJja2hoaHFwZjcwZ3pyMnFwNmY3aHY2eDg4In0.Ai4rUxBMjwoNzHTIDqmuBA"
         onViewportChange={(nextViewport) => setViewport(nextViewport)}
       >
-        <Deck viewport={viewport}/>
         <ClusterGroupMain
             mapRef={mapRef}
             viewport={viewport}
             onViewportChange={setViewport}
             points={data}
-            marker={<img alt="" height={40} width={40} src="https://img.icons8.com/emoji/48/000000/helicopter-emoji.png"/>}
+            marker={<img alt="" height={40} width={40} src="https://img.icons8.com/nolan/64/worldwide-location.png"/>}
         />
       </ReactMapGL>
     </div>
@@ -47,9 +44,3 @@ export default function App() {
 
 
 
-
-
-//import Cesium from "./cesium/Cesium";
-//import Cesium from "./cesium/Flight";
-//import Cesium from "./cesium/Resium";
-//import Cesium from "./cesium-test/CesiumRoot";
