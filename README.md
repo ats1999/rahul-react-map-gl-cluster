@@ -1,5 +1,5 @@
 # rahul-react-map-gl-cluster
-Implemention of cluster in react-map-gl. The aim of this repo is to ease the work of development.
+Implemention of cluster in react-map-gl. Developer can use it as a reference repo and implement the clustering in his/her application quickly.
 
 ## Initially
 ![Screenshot (2)](https://user-images.githubusercontent.com/54087826/114540301-f83ec480-9c72-11eb-89bd-7ddc7238fc5c.png)
